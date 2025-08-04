@@ -1,0 +1,1214 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOUKU - Drama, Film, Show, Anime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #ff4d4d 0%, #f9cb28 100%);
+        }
+        .show-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .nav-link:hover {
+            color: #ff4d4d;
+        }
+        .play-button {
+            background: rgba(0, 0, 0, 0.7);
+            transition: all 0.3s ease;
+        }
+        .play-button:hover {
+            background: rgba(255, 77, 77, 0.9);
+        }
+        .category-tab.active {
+            border-bottom: 3px solid #ff4d4d;
+            color: #ff4d4d;
+        }
+        @media (max-width: 640px) {
+            .mobile-menu {
+                display: none;
+            }
+            .mobile-menu.active {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                z-index: 100;
+                padding: 1rem;
+                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            }
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Header transparent effect */
+        .header-transparent {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .header-transparent .nav-link,
+        .header-transparent img {
+            transition: all 0.3s ease;
+        }
+        
+        /* App header transparent effect */
+        .app-header-transparent {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        /* Hero carousel styles */
+        .hero-carousel {
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .hero-slide.active {
+            opacity: 1;
+        }
+        .hero-slide.first {
+            position: relative;
+        }
+        
+        /* Carousel indicators */
+        .carousel-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            space-x: 8px;
+        }
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .indicator.active {
+            background: white;
+        }
+        
+        /* Mobile search bar */
+        .mobile-search-bar {
+            display: none;
+        }
+        .mobile-search-bar.active {
+            display: block;
+        }
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            margin-top: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Horizontal scroll sections */
+        .horizontal-scroll {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            gap: 16px;
+            padding-bottom: 16px;
+        }
+        .horizontal-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300" id="header">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#" class="flex items-center">
+                <img src="https://img.alicdn.com/imgextra/i3/O1CN01gh9DO91Dj0Lr8PPNJ_!!6000000000251-55-tps-333-66.svg" alt="YOUKU Logo" class="h-10">
+            </a>
+            
+            <!-- Search Section -->
+            <div class="flex items-center space-x-4">
+                <!-- Search in Navbar for Desktop -->
+                <div class="relative hidden md:block">
+                    <input type="text" 
+                           id="navbarSearchInput" 
+                           class="w-64 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" 
+                           placeholder="Search shows, movies, anime..."
+                           autocomplete="off">
+                    <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500" onclick="performNavbarSearch()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <div class="search-results absolute top-full left-0 right-0 mt-2 z-50" id="navbarSearchResults" style="display: none;"></div>
+                </div>
+                
+                <!-- Search for Mobile - shows search input directly -->
+                <div class="relative md:hidden">
+                    <button class="text-gray-600 hover:text-red-500" id="mobileSearchToggle">
+                        <i class="fas fa-search text-xl"></i>
+                    </button>
+                </div>
+                
+                <button class="md:hidden text-gray-600" id="mobile-menu-button">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Search Bar -->
+        <div class="mobile-search-bar hidden md:hidden bg-white border-b border-gray-200 px-4 py-3" id="mobile-search-bar">
+            <div class="relative">
+                <input type="text" 
+                       id="mobileSearchInput" 
+                       class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" 
+                       placeholder="Search shows, movies, anime..."
+                       autocomplete="off">
+                <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500" onclick="performMobileSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+                <div class="search-results mt-2" id="mobileSearchResults" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div class="mobile-menu hidden" id="mobile-menu">
+            <div class="px-4 py-2">
+                <a href="#cdrama" class="block py-2 text-gray-700 hover:text-red-500">C-Drama</a>
+                <a href="#kdrama" class="block py-2 text-gray-700 hover:text-red-500">K-Drama</a>
+                <a href="#anime" class="block py-2 text-gray-700 hover:text-red-500">Anime</a>
+                <a href="#donghua" class="block py-2 text-gray-700 hover:text-red-500">Donghua</a>
+                <a href="#movies" class="block py-2 text-gray-700 hover:text-red-500">Movies</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- App Header Horizontal Categories -->
+    <div class="bg-white border-b border-gray-200 sticky top-16 z-40 transition-all duration-300" id="appHeader">
+        <div class="container mx-auto px-4">
+            <nav class="flex space-x-8 py-3 overflow-x-auto scrollbar-hide">
+                <a href="#cdrama" class="nav-link text-gray-700 hover:text-red-500 font-medium transition-colors whitespace-nowrap border-b-2 border-transparent hover:border-red-500">C-Drama</a>
+                <a href="#kdrama" class="nav-link text-gray-700 hover:text-red-500 font-medium transition-colors whitespace-nowrap border-b-2 border-transparent hover:border-red-500">K-Drama</a>
+                <a href="#anime" class="nav-link text-gray-700 hover:text-red-500 font-medium transition-colors whitespace-nowrap border-b-2 border-transparent hover:border-red-500">Anime</a>
+                <a href="#donghua" class="nav-link text-gray-700 hover:text-red-500 font-medium transition-colors whitespace-nowrap border-b-2 border-transparent hover:border-red-500">Donghua</a>
+                <a href="#movies" class="nav-link text-gray-700 hover:text-red-500 font-medium transition-colors whitespace-nowrap border-b-2 border-transparent hover:border-red-500">Movies</a>
+            </nav>
+        </div>
+    </div></header>
+
+    <!-- Hero Carousel Banner -->
+    <section class="hero-carousel relative h-64 sm:h-80 md:h-96 lg:h-[500px] overflow-hidden">
+        <!-- Slide 1 -->
+        <div class="hero-slide active first">
+            <div class="absolute inset-0">
+                <img src="https://m.ykimg.com/05840000687DACEF711E4F1516A29D31?x-oss-process=image/resize,w_1200/interlace,1/quality,Q_80" alt="The Immortal Ascension" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"></div>
+            </div>
+            <div class="relative container mx-auto px-4 h-full flex items-center">
+                <div class="max-w-2xl text-white">
+                    <span class="inline-block bg-red-600 text-white text-sm font-bold px-3 py-1 rounded mb-4">FEATURED</span>
+                    <h1 class="text-2xl sm:text-3xl md:text-5xl font-bold mb-3 md:mb-4">The Immortal Ascension</h1>
+                    <div class="flex items-center space-x-2 sm:space-x-4 mb-3 md:mb-4 flex-wrap">
+                        <span class="text-sm sm:text-lg">2024</span>
+                        <span class="text-gray-300 hidden sm:inline">•</span>
+                        <span class="text-sm sm:text-lg">Fantasy • Xianxia</span>
+                    </div>
+                    <p class="text-sm sm:text-lg md:text-xl mb-4 md:mb-6 leading-relaxed hidden sm:block">Join the epic journey of cultivation and immortality in this breathtaking fantasy series.</p>
+                    <div class="flex space-x-2 sm:space-x-4">
+                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg transition duration-300 flex items-center text-sm sm:text-base">
+                            <i class="fas fa-play mr-1 sm:mr-2"></i>
+                            Watch Now
+                        </button>
+                        <button class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-3 sm:py-3 sm:px-6 rounded-lg transition duration-300 flex items-center backdrop-blur-sm text-sm sm:text-base">
+                            <i class="fas fa-plus mr-1 sm:mr-2"></i>
+                            My List
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="hero-slide">
+            <div class="absolute inset-0">
+                <img src="https://m.ykimg.com/05840000649264B11427220BB9C5EA01?x-oss-process=image/resize,w_1200/interlace,1/quality,Q_80" alt="Hidden Love" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"></div>
+            </div>
+            <div class="relative container mx-auto px-4 h-full flex items-center">
+                <div class="max-w-2xl text-white">
+                    <span class="inline-block bg-red-600 text-white text-sm font-bold px-3 py-1 rounded mb-4">TRENDING</span>
+                    <h1 class="text-2xl sm:text-3xl md:text-5xl font-bold mb-3 md:mb-4">Hidden Love</h1>
+                    <div class="flex items-center space-x-2 sm:space-x-4 mb-3 md:mb-4 flex-wrap">
+                        <span class="text-sm sm:text-lg">2023</span>
+                        <span class="text-gray-300 hidden sm:inline">•</span>
+                        <span class="text-sm sm:text-lg">Romance • Drama</span>
+                    </div>
+                    <p class="text-sm sm:text-lg md:text-xl mb-4 md:mb-6 leading-relaxed hidden sm:block">A heartwarming romance that captures the essence of first love and growing up.</p>
+                    <div class="flex space-x-2 sm:space-x-4">
+                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg transition duration-300 flex items-center text-sm sm:text-base">
+                            <i class="fas fa-play mr-1 sm:mr-2"></i>
+                            Watch Now
+                        </button>
+                        <button class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-3 sm:py-3 sm:px-6 rounded-lg transition duration-300 flex items-center backdrop-blur-sm text-sm sm:text-base">
+                            <i class="fas fa-plus mr-1 sm:mr-2"></i>
+                            My List
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="hero-slide">
+            <div class="absolute inset-0">
+                <img src="https://m.ykimg.com/05840000682D42CA13EFA315A6A6BEE3?x-oss-process=image/resize,w_1200/interlace,1/quality,Q_80" alt="In Blossom" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"></div>
+            </div>
+            <div class="relative container mx-auto px-4 h-full flex items-center">
+                <div class="max-w-2xl text-white">
+                    <span class="inline-block bg-red-600 text-white text-sm font-bold px-3 py-1 rounded mb-4">POPULAR</span>
+                    <h1 class="text-2xl sm:text-3xl md:text-5xl font-bold mb-3 md:mb-4">In Blossom</h1>
+                    <div class="flex items-center space-x-2 sm:space-x-4 mb-3 md:mb-4 flex-wrap">
+                        <span class="text-sm sm:text-lg">2024</span>
+                        <span class="text-gray-300 hidden sm:inline">•</span>
+                        <span class="text-sm sm:text-lg">Historical • Romance</span>
+                    </div>
+                    <p class="text-sm sm:text-lg md:text-xl mb-4 md:mb-6 leading-relaxed hidden sm:block">A beautiful historical romance set in ancient China with stunning visuals.</p>
+                    <div class="flex space-x-2 sm:space-x-4">
+                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg transition duration-300 flex items-center text-sm sm:text-base">
+                            <i class="fas fa-play mr-1 sm:mr-2"></i>
+                            Watch Now
+                        </button>
+                        <button class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-3 sm:py-3 sm:px-6 rounded-lg transition duration-300 flex items-center backdrop-blur-sm text-sm sm:text-base">
+                            <i class="fas fa-plus mr-1 sm:mr-2"></i>
+                            My List
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carousel Indicators -->
+        <div class="carousel-indicators">
+            <div class="indicator active" onclick="setSlide(0)"></div>
+            <div class="indicator" onclick="setSlide(1)"></div>
+            <div class="indicator" onclick="setSlide(2)"></div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Trending Section -->
+        <section class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Trending Now</h2>
+                <a href="#" class="text-red-500 hover:underline">View All</a>
+            </div>
+            
+            <div class="horizontal-scroll">
+                <!-- Show Card 1 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000687DACEF711E4F1516A29D31?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="The Immortal Ascension" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">The Immortal Ascension</h3>
+                        <p class="text-sm text-gray-500">Fantasy • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Show Card 2 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000664B32157B50C00F071672B4?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Practice Daughter" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Practice Daughter</h3>
+                        <p class="text-sm text-gray-500">Drama • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Show Card 3 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/058400006843FF361409CB111BDBD094?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="The Seven Relics of ill Omen" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">The Seven Relics of ill Omen</h3>
+                        <p class="text-sm text-gray-500">Action • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Show Card 4 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000649264B11427220BB9C5EA01?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Hidden Love" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Hidden Love</h3>
+                        <p class="text-sm text-gray-500">Romance • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Show Card 5 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/058400006890681B13EFA3133BAF8189?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Martial Universe" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Martial Universe</h3>
+                        <p class="text-sm text-gray-500">Action • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Show Card 6 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000682D42CA13EFA315A6A6BEE3?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="In Blossom" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">In Blossom</h3>
+                        <p class="text-sm text-gray-500">Historical • 2024</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Top 10 Section (Horizontal Scroll) -->
+        <section class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Top 10 Shows in Your Region</h2>
+                <a href="#" class="text-red-500 hover:underline">View All</a>
+            </div>
+            
+            <div class="horizontal-scroll">
+                <!-- Top 10 Item 1 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden flex-shrink-0 p-4 hover:bg-gray-50 transition" style="width: 300px;">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-red-500 w-8 mr-4">1</span>
+                        <img src="https://m.ykimg.com/05840000687DACEF711E4F1516A29D31?x-oss-process=image/resize,w_100/interlace,1/quality,Q_80" alt="The Immortal Ascension" class="w-16 h-16 object-cover rounded mr-4">
+                        <div class="flex-1">
+                            <h3 class="font-semibold">The Immortal Ascension</h3>
+                            <p class="text-sm text-gray-500">Fantasy • 2023</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top 10 Item 2 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden flex-shrink-0 p-4 hover:bg-gray-50 transition" style="width: 300px;">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-red-500 w-8 mr-4">2</span>
+                        <img src="https://m.ykimg.com/05840000649264B11427220BB9C5EA01?x-oss-process=image/resize,w_100/interlace,1/quality,Q_80" alt="Hidden Love" class="w-16 h-16 object-cover rounded mr-4">
+                        <div class="flex-1">
+                            <h3 class="font-semibold">Hidden Love</h3>
+                            <p class="text-sm text-gray-500">Romance • 2023</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top 10 Item 3 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden flex-shrink-0 p-4 hover:bg-gray-50 transition" style="width: 300px;">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-red-500 w-8 mr-4">3</span>
+                        <img src="https://m.ykimg.com/0584000067B3ED43C7C00812874FF46F?x-oss-process=image/resize,w_100/interlace,1/quality,Q_80" alt="The First Frost" class="w-16 h-16 object-cover rounded mr-4">
+                        <div class="flex-1">
+                            <h3 class="font-semibold">The First Frost</h3>
+                            <p class="text-sm text-gray-500">Drama • 2023</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top 10 Item 4 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden flex-shrink-0 p-4 hover:bg-gray-50 transition" style="width: 300px;">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-gray-500 w-8 mr-4">4</span>
+                        <img src="https://m.ykimg.com/058400006843FF361409CB111BDBD094?x-oss-process=image/resize,w_100/interlace,1/quality,Q_80" alt="The Seven Relics of ill Omen" class="w-16 h-16 object-cover rounded mr-4">
+                        <div class="flex-1">
+                            <h3 class="font-semibold">The Seven Relics of ill Omen</h3>
+                            <p class="text-sm text-gray-500">Action • 2023</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top 10 Item 5 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden flex-shrink-0 p-4 hover:bg-gray-50 transition" style="width: 300px;">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-gray-500 w-8 mr-4">5</span>
+                        <img src="https://m.ykimg.com/0584000065C2ECA813EBC61B56076415?x-oss-process=image/resize,w_100/interlace,1/quality,Q_80" alt="KUN IN THE DISTANT OCEAN" class="w-16 h-16 object-cover rounded mr-4">
+                        <div class="flex-1">
+                            <h3 class="font-semibold">KUN IN THE DISTANT OCEAN</h3>
+                            <p class="text-sm text-gray-500">Drama • 2023</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- C-Drama Section -->
+        <section class="mb-12" id="cdrama">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">C-Drama</h2>
+                <a href="#" class="text-red-500 hover:underline">View All</a>
+            </div>
+            
+            <div class="horizontal-scroll">
+                <!-- C-Drama Show Card 1 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000687DACEF711E4F1516A29D31?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="The Immortal Ascension" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">The Immortal Ascension</h3>
+                        <p class="text-sm text-gray-500">Xianxia • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- C-Drama Show Card 2 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000649264B11427220BB9C5EA01?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Hidden Love" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Hidden Love</h3>
+                        <p class="text-sm text-gray-500">Romance • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- C-Drama Show Card 3 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000682D42CA13EFA315A6A6BEE3?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="In Blossom" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">In Blossom</h3>
+                        <p class="text-sm text-gray-500">Historical • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- C-Drama Show Card 4 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/0584000065C2ECA813EBC61B56076415?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Till The End of The Moon" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Till The End of The Moon</h3>
+                        <p class="text-sm text-gray-500">Fantasy • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- C-Drama Show Card 5 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/058400006890681B13EFA3133BAF8189?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="The Story of Pearl Girl" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">The Story of Pearl Girl</h3>
+                        <p class="text-sm text-gray-500">Period Drama • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Additional C-Drama Cards -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/0584000067B3ED43C7C00812874FF46F?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="The First Frost" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">The First Frost</h3>
+                        <p class="text-sm text-gray-500">Drama • 2023</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- K-Drama Section -->
+        <section class="mb-12" id="kdrama">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">K-Drama</h2>
+                <a href="#" class="text-red-500 hover:underline">View All</a>
+            </div>
+            
+            <div class="horizontal-scroll">
+                <!-- K-Drama Show Card 1 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1611003228542-4ed84b6e4a5c?w=400&h=600&fit=crop" alt="Crash Landing on You" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Crash Landing on You</h3>
+                        <p class="text-sm text-gray-500">Romance • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- K-Drama Show Card 2 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop" alt="Squid Game" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Squid Game</h3>
+                        <p class="text-sm text-gray-500">Thriller • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- K-Drama Show Card 3 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=400&h=600&fit=crop" alt="Kingdom" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Kingdom</h3>
+                        <p class="text-sm text-gray-500">Historical • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- K-Drama Show Card 4 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1617469167327-cb5b7af1b1b7?w=400&h=600&fit=crop" alt="Hospital Playlist" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Hospital Playlist</h3>
+                        <p class="text-sm text-gray-500">Medical • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- K-Drama Show Card 5 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=600&fit=crop" alt="The Glory" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">The Glory</h3>
+                        <p class="text-sm text-gray-500">Drama • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Additional K-Drama Cards -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1566045179529-3fd0a53ccbf0?w=400&h=600&fit=crop" alt="Business Proposal" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Business Proposal</h3>
+                        <p class="text-sm text-gray-500">Romance • 2024</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Anime Section -->
+        <section class="mb-12" id="anime">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Anime</h2>
+                <a href="#" class="text-red-500 hover:underline">View All</a>
+            </div>
+            
+            <div class="horizontal-scroll">
+                <!-- Anime Show Card 1 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop" alt="Attack on Titan" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Attack on Titan</h3>
+                        <p class="text-sm text-gray-500">Action • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Anime Show Card 2 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1606878739776-de3ff1bbcf14?w=400&h=600&fit=crop" alt="Demon Slayer" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Demon Slayer</h3>
+                        <p class="text-sm text-gray-500">Supernatural • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Anime Show Card 3 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1571889333571-5c1a60e8f00d?w=400&h=600&fit=crop" alt="One Piece" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">One Piece</h3>
+                        <p class="text-sm text-gray-500">Adventure • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Anime Show Card 4 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1566045179529-3fd0a53ccbf0?w=400&h=600&fit=crop" alt="Naruto" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Naruto</h3>
+                        <p class="text-sm text-gray-500">Ninja • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Anime Show Card 5 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop" alt="Jujutsu Kaisen" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Jujutsu Kaisen</h3>
+                        <p class="text-sm text-gray-500">Supernatural • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Additional Anime Cards -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=600&fit=crop" alt="My Hero Academia" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">My Hero Academia</h3>
+                        <p class="text-sm text-gray-500">Superhero • 2024</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Donghua Section -->
+        <section class="mb-12" id="donghua">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Donghua</h2>
+                <a href="#" class="text-red-500 hover:underline">View All</a>
+            </div>
+            
+            <div class="horizontal-scroll">
+                <!-- Donghua Show Card 1 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/058400006843FF361409CB111BDBD094?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Soul Land" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Soul Land</h3>
+                        <p class="text-sm text-gray-500">Fantasy • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Donghua Show Card 2 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/058400006890681B13EFA3133BAF8189?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Battle Through the Heavens" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Battle Through the Heavens</h3>
+                        <p class="text-sm text-gray-500">Adventure • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Donghua Show Card 3 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000687DACEF711E4F1516A29D31?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Perfect World" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Perfect World</h3>
+                        <p class="text-sm text-gray-500">Cultivation • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Donghua Show Card 4 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/0584000065C2ECA813EBC61B56076415?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Mo Dao Zu Shi" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Mo Dao Zu Shi</h3>
+                        <p class="text-sm text-gray-500">Wuxia • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Donghua Show Card 5 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000649264B11427220BB9C5EA01?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Legend of Exorcism" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Legend of Exorcism</h3>
+                        <p class="text-sm text-gray-500">Supernatural • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Additional Donghua Cards -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://m.ykimg.com/05840000682D42CA13EFA315A6A6BEE3?x-oss-process=image/resize,w_385/interlace,1/quality,Q_80" alt="Swallowed Star" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Swallowed Star</h3>
+                        <p class="text-sm text-gray-500">Sci-Fi • 2024</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Movies Section -->
+        <section class="mb-12" id="movies">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Movies</h2>
+                <a href="#" class="text-red-500 hover:underline">View All</a>
+            </div>
+            
+            <div class="horizontal-scroll">
+                <!-- Movie Card 1 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1489599142261-87e53a949e75?w=400&h=600&fit=crop" alt="The Wandering Earth" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">The Wandering Earth</h3>
+                        <p class="text-sm text-gray-500">Sci-Fi • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Movie Card 2 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=400&h=600&fit=crop" alt="Detective Chinatown" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Detective Chinatown</h3>
+                        <p class="text-sm text-gray-500">Comedy • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Movie Card 3 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=400&h=600&fit=crop" alt="Wolf Warrior" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Wolf Warrior</h3>
+                        <p class="text-sm text-gray-500">Action • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Movie Card 4 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1478720568477-b0b8b2c5e58a?w=400&h=600&fit=crop" alt="The Battle at Lake Changjin" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">The Battle at Lake Changjin</h3>
+                        <p class="text-sm text-gray-500">War • 2024</p>
+                    </div>
+                </div>
+                
+                <!-- Movie Card 5 -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop" alt="My People, My Country" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">My People, My Country</h3>
+                        <p class="text-sm text-gray-500">Drama • 2023</p>
+                    </div>
+                </div>
+                
+                <!-- Additional Movie Cards -->
+                <div class="bg-white rounded-lg overflow-hidden shadow-md show-card transition duration-300 relative flex-shrink-0" style="width: 180px;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=400&h=600&fit=crop" alt="Better Days" class="w-full h-48 object-cover">
+                        <div class="play-button absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+                            <i class="fas fa-play text-white text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-semibold text-gray-800 truncate">Better Days</h3>
+                        <p class="text-sm text-gray-500">Drama • 2024</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">About YOUKU</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Careers</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Press</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Help</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">FAQ</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Feedback</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Legal</h3>
+                    <ul class="space-y-2">
+                        <li><a href="https://terms.alicdn.com/legal-agreement/terms/platform_service/20220525165926567/20220525165926567.html" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                        <li><a href="https://terms.alicdn.com/legal-agreement/terms/platform_service/20220530162612141/20220530162612141.html" class="text-gray-400 hover:text-white">User Service Agreement</a></li>
+                        <li><a href="https://terms.alicdn.com/legal-agreement/terms/c_platform_service_agreement/20230407105056824/20230407105056824.html" class="text-gray-400 hover:text-white">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Download App</h3>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="#" class="bg-gray-800 p-2 rounded-lg">
+                            <i class="fab fa-apple text-2xl"></i>
+                        </a>
+                        <a href="#" class="bg-gray-800 p-2 rounded-lg">
+                            <i class="fab fa-android text-2xl"></i>
+                        </a>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-facebook-f text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
+                <p>Copyright © 2023 Jet Brilliant Limited. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sample data for search
+        const showsData = [
+            { title: "The Immortal Ascension", genre: "Fantasy", year: "2024", type: "C-Drama" },
+            { title: "Hidden Love", genre: "Romance", year: "2023", type: "C-Drama" },
+            { title: "In Blossom", genre: "Historical", year: "2024", type: "C-Drama" },
+            { title: "Crash Landing on You", genre: "Romance", year: "2023", type: "K-Drama" },
+            { title: "Squid Game", genre: "Thriller", year: "2024", type: "K-Drama" },
+            { title: "Kingdom", genre: "Historical", year: "2023", type: "K-Drama" },
+            { title: "Attack on Titan", genre: "Action", year: "2023", type: "Anime" },
+            { title: "Demon Slayer", genre: "Supernatural", year: "2024", type: "Anime" },
+            { title: "One Piece", genre: "Adventure", year: "2023", type: "Anime" },
+            { title: "Soul Land", genre: "Fantasy", year: "2024", type: "Donghua" },
+            { title: "Battle Through the Heavens", genre: "Adventure", year: "2023", type: "Donghua" },
+            { title: "The Wandering Earth", genre: "Sci-Fi", year: "2023", type: "Movie" },
+            { title: "Detective Chinatown", genre: "Comedy", year: "2024", type: "Movie" }
+        ];
+
+        // Hero carousel functionality
+        let currentSlide = 0;
+        const totalSlides = 3;
+        
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.hero-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            slides[index].classList.add('active');
+            indicators[index].classList.add('active');
+        }
+        
+        function setSlide(index) {
+            currentSlide = index;
+            showSlide(currentSlide);
+        }
+        
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+        
+        // Auto-advance carousel
+        setInterval(nextSlide, 5000);
+
+        // Transparent header on scroll
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            const appHeader = document.getElementById('appHeader');
+            if (window.scrollY > 50) {
+                header.classList.add('header-transparent');
+                if (appHeader) {
+                    appHeader.classList.add('app-header-transparent');
+                }
+            } else {
+                header.classList.remove('header-transparent');
+                if (appHeader) {
+                    appHeader.classList.remove('app-header-transparent');
+                }
+            }
+        });
+
+        // Real-time search function
+        function performSearch(inputElement, resultsElement) {
+            const query = inputElement.value.toLowerCase().trim();
+            
+            if (query === '') {
+                resultsElement.style.display = 'none';
+                return;
+            }
+            
+            const filteredShows = showsData.filter(show => 
+                show.title.toLowerCase().includes(query) ||
+                show.genre.toLowerCase().includes(query) ||
+                show.type.toLowerCase().includes(query)
+            );
+            
+            if (filteredShows.length > 0) {
+                resultsElement.innerHTML = filteredShows.map(show => `
+                    <div class="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
+                        <h4 class="font-semibold text-gray-800">${show.title}</h4>
+                        <p class="text-sm text-gray-500">${show.type} • ${show.genre} • ${show.year}</p>
+                    </div>
+                `).join('');
+                resultsElement.style.display = 'block';
+            } else {
+                resultsElement.innerHTML = '<div class="p-4 text-gray-500 text-center">No results found</div>';
+                resultsElement.style.display = 'block';
+            }
+        }
+
+        // Navbar search functions
+        function performNavbarSearch() {
+            const input = document.getElementById('navbarSearchInput');
+            const results = document.getElementById('navbarSearchResults');
+            performSearch(input, results);
+        }
+
+        function performMobileSearch() {
+            const input = document.getElementById('mobileSearchInput');
+            const results = document.getElementById('mobileSearchResults');
+            performSearch(input, results);
+        }
+
+        // Navbar search functionality
+        document.getElementById('navbarSearchInput').addEventListener('input', function(e) {
+            performSearch(this, document.getElementById('navbarSearchResults'));
+        });
+
+        // Mobile search toggle
+        const mobileSearchToggle = document.getElementById('mobileSearchToggle');
+        const mobileSearchBar = document.getElementById('mobile-search-bar');
+        
+        if (mobileSearchToggle && mobileSearchBar) {
+            mobileSearchToggle.addEventListener('click', function() {
+                mobileSearchBar.classList.toggle('active');
+                if (mobileSearchBar.classList.contains('active')) {
+                    document.getElementById('mobileSearchInput').focus();
+                }
+            });
+        }
+
+        // Mobile search functionality
+        document.getElementById('mobileSearchInput').addEventListener('input', function(e) {
+            performSearch(this, document.getElementById('mobileSearchResults'));
+        });
+
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(e) {
+            const navbarSearch = document.getElementById('navbarSearchInput');
+            const navbarResults = document.getElementById('navbarSearchResults');
+            const mobileSearch = document.getElementById('mobileSearchInput');
+            const mobileResults = document.getElementById('mobileSearchResults');
+            
+            if (navbarSearch && navbarResults && !navbarSearch.contains(e.target) && !navbarResults.contains(e.target)) {
+                navbarResults.style.display = 'none';
+            }
+            
+            if (mobileSearch && mobileResults && !mobileSearch.contains(e.target) && !mobileResults.contains(e.target)) {
+                mobileResults.style.display = 'none';
+            }
+        });
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('active');
+            });
+        }
+        
+        // Active navigation link highlighting
+        const navLinks = document.querySelectorAll('#appHeader .nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navLinks.forEach(l => l.classList.remove('border-red-500', 'text-red-500'));
+                this.classList.add('border-red-500', 'text-red-500');
+            });
+        });
+
+        // Show card hover effect
+        const showCards = document.querySelectorAll('.show-card');
+        
+        showCards.forEach(card => {
+            const playButton = card.querySelector('.play-button');
+            
+            if (playButton) {
+                card.addEventListener('mouseenter', () => {
+                    playButton.style.opacity = '1';
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    playButton.style.opacity = '0';
+                });
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
